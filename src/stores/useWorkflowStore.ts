@@ -9,10 +9,13 @@ type WorkflowState = {
     setEdges: (edges: Edge[]) => void;
     setNodeStatus: (nodeId: string, status: string) => void;
     resetNodeStatus: () => void;
+    updateNodeOutput: (nodeId: string, output: string) => void;
+    saveWorkflow: () => void;
+    loadWorkflow: () => void;
 };
 
 
-export const useWorkflowStore = create<WorkflowState>((set) => ({
+export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     nodes: [],
     edges: [],
 
@@ -24,6 +27,7 @@ export const useWorkflowStore = create<WorkflowState>((set) => ({
 
     setNodes: (nodes) => set({ nodes }),
     setEdges: (edges) => set({ edges }),
+
     setNodeStatus: (nodeId: string, status: string) => {
         console.log(`🔄 Updating node ${nodeId} status to ${status}`);
         set((state) => {
@@ -36,6 +40,7 @@ export const useWorkflowStore = create<WorkflowState>((set) => ({
             return { nodes: newNodes };
         });
     },
+
     resetNodeStatus: () => {
         console.log("🔄 Resetting all node statuses to idle");
         set((state) => ({
@@ -45,5 +50,47 @@ export const useWorkflowStore = create<WorkflowState>((set) => ({
             })),
         }));
     },
+
+    updateNodeOutput: (nodeId: string, output: string) => {
+        console.log(`📝 Updating node ${nodeId} output`);
+        set((state) => ({
+            nodes: state.nodes.map((n) =>
+                n.id === nodeId
+                    ? {
+                        ...n,
+                        data: {
+                            ...n.data,
+                            config: {
+                                ...n.data.config,
+                                output
+                            }
+                        }
+                    }
+                    : n
+            ),
+        }));
+    },
+
+    saveWorkflow: () => {
+        const { nodes, edges } = get();
+        localStorage.setItem(
+            "workflow",
+            JSON.stringify({ nodes, edges })
+        );
+        alert("💾 Workflow saved!");
+    },
+
+    loadWorkflow: () => {
+        const data = localStorage.getItem("workflow");
+        if (!data) {
+            alert("❌ No saved workflow found!");
+            return;
+        }
+
+        const { nodes, edges } = JSON.parse(data);
+        set({ nodes, edges });
+        alert("📂 Workflow loaded!");
+    },
+
 
 }));

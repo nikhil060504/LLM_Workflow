@@ -43,21 +43,26 @@ export default function CropImageNode({ id }: NodeProps) {
                 <input
                     className="nodrag border rounded p-1"
                     placeholder="X"
+                    value={data.config?.x || ""}
+
                     onChange={(e) => updateField("x", e.target.value)}
                 />
                 <input
                     className="nodrag border rounded p-1"
                     placeholder="Y"
+                    value={data.config?.y || ""}
                     onChange={(e) => updateField("y", e.target.value)}
                 />
                 <input
                     className="nodrag border rounded p-1"
                     placeholder="Width"
+                    value={data.config?.width || ""}
                     onChange={(e) => updateField("width", e.target.value)}
                 />
                 <input
                     className="nodrag border rounded p-1"
                     placeholder="Height"
+                    value={data.config?.height || ""}
                     onChange={(e) => updateField("height", e.target.value)}
                 />
             </div>

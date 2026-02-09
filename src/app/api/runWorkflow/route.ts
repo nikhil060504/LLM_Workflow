@@ -7,9 +7,14 @@ export async function POST(req: NextRequest) {
         const { nodes, edges } = await req.json();
 
         const batches = buildExecutionBatches(nodes, edges);
-        await runWorkflowEngine(batches, nodes, edges);
+        const outputs = await runWorkflowEngine(batches, nodes, edges);
 
-        return NextResponse.json({ success: true });
+        // Return outputs so frontend can update nodes
+        return NextResponse.json({
+            success: true,
+            outputs,
+            nodes // Return updated nodes with outputs
+        });
     } catch (err: any) {
         console.error("Workflow failed:", err.message);
         return NextResponse.json(

@@ -39,12 +39,14 @@ export default function ExtractFrameNode({ id }: NodeProps) {
                 <input
                     className="nodrag border rounded p-1 w-full"
                     placeholder="Timestamp (sec)"
+                    value={data.config?.timestamp || ""}
+
                     onChange={(e) => updateTimestamp(e.target.value)}
                 />
             </div>
 
-           
-<TypedHandle type="source" position={Position.Bottom} portType="image" />
+
+            <TypedHandle type="source" position={Position.Bottom} portType="image" />
 
         </div>
     );

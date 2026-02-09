@@ -34,13 +34,14 @@ export default function TextNode({ id, data }: NodeProps) {
 
 
             <div className="p-2 text-sm font-semibold border-b">Text Node</div>
-
             <textarea
                 className="nodrag w-full p-2 text-xs outline-none resize-none"
                 placeholder="Enter text..."
                 rows={4}
+                value={data.config?.text || ""}
                 onChange={(e) => updateText(e.target.value)}
             />
+
 
             <TypedHandle type="source" position={Position.Bottom} portType="text" />
         </div>

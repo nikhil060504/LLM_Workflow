@@ -27,6 +27,8 @@ export default function LLMNode({ id, data }: NodeProps) {
         setNodes(updatedNodes);
     };
 
+    const output = data?.config?.output || "";
+
     return (
         <div className="bg-white border rounded-lg shadow w-64 relative">
             <StatusDot status={data.status} />
@@ -41,6 +43,7 @@ export default function LLMNode({ id, data }: NodeProps) {
                     className="nodrag w-full text-xs border rounded p-1"
                     placeholder="System prompt..."
                     rows={2}
+                    value={data?.config?.systemPrompt || ""}
                     onChange={(e) => updateField("systemPrompt", e.target.value)}
                 />
 
@@ -48,12 +51,21 @@ export default function LLMNode({ id, data }: NodeProps) {
                     className="nodrag w-full text-xs border rounded p-1"
                     placeholder="User message..."
                     rows={3}
+                    value={data?.config?.userMessage || ""}
                     onChange={(e) => updateField("userMessage", e.target.value)}
                 />
 
-                <div className="text-[10px] text-gray-400">
-                    Output will appear here after run
-                </div>
+                {/* Output Display */}
+                {output ? (
+                    <div className="nodrag w-full text-xs border rounded p-2 bg-green-50 max-h-32 overflow-y-auto">
+                        <div className="font-semibold text-green-700 mb-1">✅ Output:</div>
+                        <div className="text-gray-700 whitespace-pre-wrap">{output}</div>
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-gray-400 italic">
+                        Output will appear here after run
+                    </div>
+                )}
             </div>
 
             <TypedHandle type="source" position={Position.Bottom} portType="text" />

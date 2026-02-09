@@ -10,33 +10,47 @@ export default function LeftSidebar() {
     const edges = useWorkflowStore((s) => s.edges);
     const setNodeStatus = useWorkflowStore((s) => s.setNodeStatus);
     const resetNodeStatus = useWorkflowStore((s) => s.resetNodeStatus);
+    const updateNodeOutput = useWorkflowStore((s) => s.updateNodeOutput);
+    const saveWorkflow = useWorkflowStore((s) => s.saveWorkflow);
+    const loadWorkflow = useWorkflowStore((s) => s.loadWorkflow);
 
-   const runWorkflow = async () => {
-  resetNodeStatus();
-  const batches = buildExecutionBatches(nodes, edges);
+    const runWorkflow = async () => {
+        resetNodeStatus();
+        const batches = buildExecutionBatches(nodes, edges);
 
-  for (const batch of batches) {
-    batch.forEach((id) => setNodeStatus(id, "running"));
-    await new Promise((res) => setTimeout(res, 800));
+        for (const batch of batches) {
+            batch.forEach((id) => setNodeStatus(id, "running"));
+            await new Promise((res) => setTimeout(res, 800));
 
-    try {
-      const res = await fetch("/api/runWorkflow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nodes, edges }),
-      });
+            try {
+                const res = await fetch("/api/runWorkflow", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nodes, edges }),
+                });
 
-      const data = await res.json();
+                const data = await res.json();
 
-      if (!data.success) throw new Error();
+                if (!data.success) throw new Error(data.error || "Workflow failed");
 
-      batch.forEach((id) => setNodeStatus(id, "success"));
-    } catch {
-      batch.forEach((id) => setNodeStatus(id, "error"));
-      return;
-    }
-  }
-};
+                // Update outputs for LLM nodes
+                if (data.outputs) {
+                    Object.entries(data.outputs).forEach(([nodeId, output]) => {
+                        updateNodeOutput(nodeId, output as string);
+                    });
+                }
+
+                batch.forEach((id) => setNodeStatus(id, "success"));
+            } catch (err: any) {
+                console.error("Workflow error:", err.message);
+                batch.forEach((id) => setNodeStatus(id, "error"));
+                alert(`❌ Workflow failed: ${err.message}`);
+                return;
+            }
+        }
+
+        alert("✅ Workflow completed successfully!");
+    };
 
 
 
@@ -47,6 +61,20 @@ export default function LeftSidebar() {
                 className="w-full bg-black text-white p-2 rounded mb-4"
             >
                 ▶ Run Workflow
+            </button>
+
+            <button
+                onClick={saveWorkflow}
+                className="w-full border p-2 rounded mb-2"
+            >
+                💾 Save Workflow
+            </button>
+
+            <button
+                onClick={loadWorkflow}
+                className="w-full border p-2 rounded mb-4"
+            >
+                📂 Load Workflow
             </button>
 
             <h2 className="font-bold text-lg">Quick Access</h2>
