@@ -9,7 +9,8 @@ import { createPortal } from "react-dom";
 export default function ImageUploadNode({ id, data }: NodeProps) {
     const nodes = useWorkflowStore((s) => s.nodes);
     const setNodes = useWorkflowStore((s) => s.setNodes);
-    const [preview, setPreview] = useState<string | null>(null);
+    const preview = data.config?.imageUrl || null;
+
     const [showModal, setShowModal] = useState(false);
 
     const updateImage = (url: string) => {
@@ -19,7 +20,8 @@ export default function ImageUploadNode({ id, data }: NodeProps) {
                     ...node,
                     data: {
                         ...node.data,
-                        config: { imageUrl: url },
+                        // ✅ CORRECT - merge with existing config
+                        config: { ...node.data.config, imageUrl: url },
                     },
                 }
                 : node
@@ -28,11 +30,37 @@ export default function ImageUploadNode({ id, data }: NodeProps) {
         setNodes(updatedNodes);
     };
 
-    const handleFile = (file: File) => {
-        const url = URL.createObjectURL(file);
-        setPreview(url);
-        updateImage(url);
+    const handleFile = async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/uploadImage", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                throw new Error(`Upload failed: ${res.status}`);
+            }
+
+            const data = await res.json();
+
+            if (!data.url) {
+                throw new Error("No URL in response");
+            }
+
+            updateImage(data.url);
+        } catch (error) {
+            console.error("Image upload error:", error);
+            // Fallback: use local blob URL
+            const localUrl = URL.createObjectURL(file);
+            updateImage(localUrl);
+            alert("⚠️ CDN upload failed, using local preview");
+        }
     };
+
+
 
     return (
         <>
@@ -41,7 +69,7 @@ export default function ImageUploadNode({ id, data }: NodeProps) {
                 className="bg-white border rounded-lg shadow relative"
             >
                 <StatusDot status={data.status} />
-               <TypedHandle type="target" position={Position.Top} portType="image" />
+                <TypedHandle type="target" position={Position.Top} portType="image" />
 
                 <div className="p-2 text-sm font-semibold border-b">
                     Upload Image

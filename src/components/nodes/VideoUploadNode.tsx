@@ -6,10 +6,11 @@ import { useWorkflowStore } from "@/stores/useWorkflowStore";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
-export default function VideoUploadNode({ id }: NodeProps) {
+export default function VideoUploadNode({ id, data }: NodeProps) {
     const nodes = useWorkflowStore((s) => s.nodes);
     const setNodes = useWorkflowStore((s) => s.setNodes);
-    const [preview, setPreview] = useState<string | null>(null);
+
+    const videoUrl = data.config?.videoUrl;
     const [showModal, setShowModal] = useState(false);
 
     const updateVideo = (url: string) => {
@@ -19,20 +20,44 @@ export default function VideoUploadNode({ id }: NodeProps) {
                     ...node,
                     data: {
                         ...node.data,
-                        config: { videoUrl: url },
+                        config: { ...node.data.config, videoUrl: url },
                     },
                 }
                 : node
         );
-
         setNodes(updatedNodes);
     };
 
-    const handleFile = (file: File) => {
-        const url = URL.createObjectURL(file);
-        setPreview(url);
-        updateVideo(url);
+    const handleFile = async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/uploadImage", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) {
+                throw new Error(`Upload failed: ${res.status}`);
+            }
+
+            const result = await res.json();
+
+            if (!result.url) {
+                throw new Error("No URL in response");
+            }
+
+            updateVideo(result.url);
+        } catch (error) {
+            console.error("Video upload error:", error);
+            // Fallback: use local blob URL
+            const localUrl = URL.createObjectURL(file);
+            updateVideo(localUrl);
+            alert("⚠️ CDN upload failed, using local preview");
+        }
     };
+
 
     return (
         <>
@@ -49,7 +74,7 @@ export default function VideoUploadNode({ id }: NodeProps) {
                 </div>
 
                 <div className="p-2">
-                    {!preview ? (
+                    {!videoUrl ? (
                         <input
                             type="file"
                             accept="video/*"
@@ -69,8 +94,8 @@ export default function VideoUploadNode({ id }: NodeProps) {
                                 }}
                                 title="Click to view full video"
                             >
-                                <video
-                                    src={preview}
+                                <video src={videoUrl}
+
                                     style={{ height: '100%', width: '100%', objectFit: 'cover' }}
                                 />
                             </div>
@@ -101,64 +126,65 @@ export default function VideoUploadNode({ id }: NodeProps) {
                     )}
                 </div>
 
-                <TypedHandle type="source" position={Position.Bottom} portType="video" />
+                {/* <TypedHandle type="source" position={Position.Bottom} portType="video" /> */}
 
             </div>
 
             {/* Full Video Preview Modal */}
-            {showModal && preview && typeof document !== 'undefined' && createPortal(
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: '#000000',
-                        zIndex: 99999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                    onClick={() => setShowModal(false)}
-                >
-                    <div style={{ position: 'relative', padding: '20px' }}>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowModal(false);
-                            }}
-                            style={{
-                                position: 'absolute',
-                                top: '10px',
-                                right: '10px',
-                                background: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                padding: '12px 24px',
-                                borderRadius: '8px',
-                                fontSize: '18px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                zIndex: 100000
-                            }}
-                        >
-                            ✕ Close
-                        </button>
-                        <video
-                            src={preview}
-                            controls
-                            autoPlay
-                            style={{
-                                maxWidth: '85vw',
-                                maxHeight: '85vh',
-                                display: 'block'
-                            }}
-                        />
-                    </div>
-                </div>,
-                document.body
-            )}
+            {showModal && videoUrl &&
+                typeof document !== 'undefined' && createPortal(
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: '#000000',
+                            zIndex: 99999,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                        onClick={() => setShowModal(false)}
+                    >
+                        <div style={{ position: 'relative', padding: '20px' }}>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowModal(false);
+                                }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    right: '10px',
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    zIndex: 100000
+                                }}
+                            >
+                                ✕ Close
+                            </button>
+                            <video
+                                src={videoUrl}
+                                controls
+                                autoPlay
+                                style={{
+                                    maxWidth: '85vw',
+                                    maxHeight: '85vh',
+                                    display: 'block'
+                                }}
+                            />
+                        </div>
+                    </div>,
+                    document.body
+                )}
         </>
     );
 }
