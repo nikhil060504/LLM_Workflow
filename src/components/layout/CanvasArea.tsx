@@ -54,7 +54,7 @@ export default function CanvasArea() {
 
     const onConnect = useCallback(
         (params: Connection) => {
-            if (isValidConnection(params, edges)) {
+            if (isValidConnection(params)) {
                 setEdges(addEdge(params, edges));
             }
         },
@@ -70,9 +70,7 @@ export default function CanvasArea() {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
-                isValidConnection={(connection) =>
-                    isValidConnection(connection, edges)
-                }
+                isValidConnection={isValidConnection}
                 fitView
                 // Force re-render when nodes array reference changes
                 key={nodes.length}
