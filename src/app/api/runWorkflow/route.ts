@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { tasks, runs } from "@trigger.dev/sdk/v3";
 import type { runWorkflowTask } from "../../../trigger/workflow";
