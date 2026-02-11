@@ -3,7 +3,6 @@
 import { useWorkflowStore } from "@/stores/useWorkflowStore";
 import { createNode } from "@/lib/createNode";
 import { buildExecutionBatches } from "@/lib/buildExecutionBatches";
-import { UserButton } from "@clerk/nextjs";
 
 export default function LeftSidebar() {
     const addNode = useWorkflowStore((s) => s.addNode);
@@ -43,9 +42,9 @@ export default function LeftSidebar() {
 
                 batch.forEach((id) => setNodeStatus(id, "success"));
             } catch (err: any) {
-                console.error("Workflow error:", err.message);
+                console.error("Workflow error:", err?.message || err);
                 batch.forEach((id) => setNodeStatus(id, "error"));
-                alert(`❌ Workflow failed: ${err.message}`);
+                alert(`❌ Workflow failed: ${err?.message || "Unknown error"}`);
                 return;
             }
         }
@@ -104,11 +103,6 @@ export default function LeftSidebar() {
                 Extract Frame
             </button>
 
-            <div className="mt-auto border-t pt-4">
-                <div className="flex items-center gap-2">
-                    <UserButton showName />
-                </div>
-            </div>
         </div>
     );
 }

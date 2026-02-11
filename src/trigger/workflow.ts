@@ -15,7 +15,7 @@ export const runWorkflowTask = task({
       logger.info("Workflow started");
 
       const batches = buildExecutionBatches(nodes, edges);
-      await runWorkflowEngine(batches, nodes, edges);
+      const outputs = await runWorkflowEngine(batches, nodes, edges);
 
       const duration = Date.now() - start;
 
@@ -27,9 +27,9 @@ export const runWorkflowTask = task({
         },
       });
 
-      logger.info("Workflow completed", { duration });
+      logger.info("Workflow completed", { duration, outputs });
 
-      return { success: true, duration };
+      return { success: true, duration, outputs };
     } catch (err: any) {
       const duration = Date.now() - start;
 

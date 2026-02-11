@@ -3,8 +3,6 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
     try {
-        console.log("📊 Fetching workflow runs from database...");
-
         // Fetch latest 10 workflow runs, ordered by most recent first
         const runs = await prisma.workflowRun.findMany({
             orderBy: {
@@ -13,7 +11,6 @@ export async function GET(req: NextRequest) {
             take: 10,
         });
 
-        console.log("✅ Found", runs.length, "workflow runs");
         return NextResponse.json(runs);
     } catch (error: any) {
         console.error("❌ Failed to fetch workflow runs:");

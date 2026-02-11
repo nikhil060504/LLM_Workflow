@@ -5,7 +5,7 @@ import StatusDot from "@/components/flow/StatusDot";
 import { Position, NodeProps } from "reactflow";
 import { useWorkflowStore } from "@/stores/useWorkflowStore";
 
-export default function CropImageNode({ id }: NodeProps) {
+export default function CropImageNode({ id, data }: NodeProps) {
     const nodes = useWorkflowStore((s) => s.nodes);
     const setNodes = useWorkflowStore((s) => s.setNodes);
 
@@ -31,7 +31,7 @@ export default function CropImageNode({ id }: NodeProps) {
     return (
         <div className="bg-white border rounded-lg shadow w-56 relative">
             <StatusDot status={data.status} />
-          <TypedHandle type="target" position={Position.Top} portType="image" />
+            <TypedHandle type="target" position={Position.Top} portType="image" />
 
 
 

@@ -4,7 +4,7 @@ import StatusDot from "@/components/flow/StatusDot";
 import { Position, NodeProps } from "reactflow";
 import { useWorkflowStore } from "@/stores/useWorkflowStore";
 
-export default function ExtractFrameNode({ id }: NodeProps) {
+export default function ExtractFrameNode({ id, data }: NodeProps) {
     const nodes = useWorkflowStore((s) => s.nodes);
     const setNodes = useWorkflowStore((s) => s.setNodes);
 
