@@ -4,6 +4,8 @@ import { writeFile, unlink } from "fs/promises";
 import path from "path";
 import os from "os";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
     let tempFilePath: string | null = null;
 
