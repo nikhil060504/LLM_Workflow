@@ -58,24 +58,75 @@ export default function LeftSidebar() {
         <div className="p-4 space-y-3">
             <button
                 onClick={runWorkflow}
-                className="w-full bg-black text-white p-2 rounded mb-4"
+                className="w-full bg-black text-white p-2 rounded mb-4 hover:bg-gray-800 transition"
             >
                 ▶ Run Workflow
             </button>
 
             <button
                 onClick={saveWorkflow}
-                className="w-full border p-2 rounded mb-2"
+                className="w-full border p-2 rounded mb-2 hover:bg-gray-50 transition"
             >
-                💾 Save Workflow
+                💾 Save to Browser
             </button>
 
             <button
                 onClick={loadWorkflow}
-                className="w-full border p-2 rounded mb-4"
+                className="w-full border p-2 rounded mb-4 hover:bg-gray-50 transition"
             >
-                📂 Load Workflow
+                📂 Load from Browser
             </button>
+
+            <div className="border-t pt-4 mb-4">
+                <h3 className="font-semibold mb-2 text-sm text-gray-600">File Operations</h3>
+                <button
+                    onClick={() => {
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ nodes, edges }, null, 2));
+                        const downloadAnchorNode = document.createElement('a');
+                        downloadAnchorNode.setAttribute("href", dataStr);
+                        downloadAnchorNode.setAttribute("download", "workflow.json");
+                        document.body.appendChild(downloadAnchorNode);
+                        downloadAnchorNode.click();
+                        downloadAnchorNode.remove();
+                    }}
+                    className="w-full border p-2 rounded mb-2 bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                >
+                    ⬇️ Export JSON
+                </button>
+
+                <label className="w-full border p-2 rounded mb-4 bg-blue-50 text-blue-700 hover:bg-blue-100 transition cursor-pointer flex justify-center items-center">
+                    <span>⬆️ Import JSON</span>
+                    <input
+                        type="file"
+                        className="hidden"
+                        accept=".json"
+                        onChange={(e) => {
+                            const fileReader = new FileReader();
+                            if (e.target.files && e.target.files[0]) {
+                                fileReader.readAsText(e.target.files[0], "UTF-8");
+                                fileReader.onload = (e) => {
+                                    try {
+                                        const fileResult = e.target?.result;
+                                        if (typeof fileResult === 'string') {
+                                            const parsedData = JSON.parse(fileResult);
+                                            if (parsedData.nodes && parsedData.edges) {
+                                                useWorkflowStore.getState().setNodes(parsedData.nodes);
+                                                useWorkflowStore.getState().setEdges(parsedData.edges);
+                                                alert("✅ Workflow imported successfully!");
+                                            } else {
+                                                alert("❌ Invalid workflow file format");
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error("Error importing file:", error);
+                                        alert("❌ Failed to parse JSON file");
+                                    }
+                                };
+                            }
+                        }}
+                    />
+                </label>
+            </div>
 
             <h2 className="font-bold text-lg">Quick Access</h2>
 

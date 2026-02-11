@@ -28,12 +28,8 @@ export default function TextNode({ id, data }: NodeProps) {
     return (
         <div className="bg-white border rounded-lg shadow w-48 relative">
             <StatusDot status={data.status} />
-
             <TypedHandle type="target" position={Position.Top} portType="text" />
-
-
-
-            <div className="p-2 text-sm font-semibold border-b">Text Node</div>
+            <div className="p-2 text-sm font-semibold border-b text-gray-700">Text Node</div>
             <textarea
                 className="nodrag w-full p-2 text-xs outline-none resize-none"
                 placeholder="Enter text..."
