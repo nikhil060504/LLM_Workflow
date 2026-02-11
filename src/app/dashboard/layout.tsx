@@ -5,7 +5,6 @@ export default function DashboardLayout({
 }) {
     return (
         <div className="h-screen w-full">
-            {/* Auth protection can be added here with Clerk's auth() */}
             {children}
         </div>
     );

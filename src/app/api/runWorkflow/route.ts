@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildExecutionBatches } from "@/lib/buildExecutionBatches";
-import { runWorkflowEngine } from "@/lib/runWorkflowEngine";
+import { tasks } from "@trigger.dev/sdk/v3";
+import type { runWorkflowTask } from "../../../trigger/workflow";
 
 export async function POST(req: NextRequest) {
     try {
         const { nodes, edges } = await req.json();
 
-        const batches = buildExecutionBatches(nodes, edges);
-        const outputs = await runWorkflowEngine(batches, nodes, edges);
+        // Trigger the background task
+        const handle = await tasks.trigger<typeof runWorkflowTask>(
+            "run-workflow",
+            { nodes, edges }
+        );
 
-        // Return outputs so frontend can update nodes
         return NextResponse.json({
             success: true,
-            outputs,
-            nodes // Return updated nodes with outputs
+            taskId: handle.id
         });
     } catch (err: any) {
-        console.error("Workflow failed:", err.message);
+        console.error("Failed to trigger workflow:", err.message);
         return NextResponse.json(
             { success: false, error: err.message },
             { status: 500 }

@@ -1,47 +1,74 @@
 "use client";
+import { useEffect, useState } from "react";
 
-import { Settings, Info } from "lucide-react";
+type Run = {
+    id: string;
+    status: string;
+    duration: number;
+    createdAt: string;
+};
 
 export default function RightSidebar() {
+    const [runs, setRuns] = useState<Run[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchRuns = async () => {
+        try {
+            const res = await fetch("/api/workflowRuns");
+            if (res.ok) {
+                const data = await res.json();
+                setRuns(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch workflow runs:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRuns();
+        // Refresh every 5 seconds
+        const interval = setInterval(fetchRuns, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
-        <aside className="h-full w-80 border-l border-gray-200 bg-white p-4">
-            <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Properties</h2>
-                <Settings className="h-5 w-5 text-gray-500" />
-            </div>
+        <div className="h-full border-l p-3 overflow-y-auto">
+            <h2 className="font-semibold mb-3">Workflow History</h2>
 
-            <div className="space-y-4">
-                <div className="rounded-lg border border-gray-200 p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                        <Info className="h-4 w-4 text-blue-500" />
-                        <h3 className="text-sm font-medium text-gray-900">Node Details</h3>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                        Select a node to view its properties
-                    </p>
-                </div>
+            {loading ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+            ) : runs.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                    No workflows run yet. Click "Run Workflow" to start!
+                </p>
+            ) : (
+                runs.map((run) => (
+                    <div
+                        key={run.id}
+                        className="border rounded p-2 mb-2 text-sm bg-white"
+                    >
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs">
+                                {new Date(run.createdAt).toLocaleTimeString()}
+                            </span>
+                            <span
+                                className={`px-2 py-0.5 rounded text-white text-xs ${run.status === "success"
+                                        ? "bg-green-500"
+                                        : "bg-red-500"
+                                    }`}
+                            >
+                                {run.status}
+                            </span>
+                        </div>
 
-                <div className="rounded-lg border border-gray-200 p-4">
-                    <h3 className="mb-2 text-sm font-medium text-gray-900">Settings</h3>
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-700">Show grid</span>
-                        </label>
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                defaultChecked
-                            />
-                            <span className="text-sm text-gray-700">Snap to grid</span>
-                        </label>
+                        <div className="text-xs text-gray-500 mt-1">
+                            {run.duration}ms
+                        </div>
                     </div>
-                </div>
-            </div>
-        </aside>
+                ))
+            )}
+        </div>
     );
 }

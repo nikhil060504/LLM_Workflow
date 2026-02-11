@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 // Example User model - customize as needed
 model User {
   id        String   @id @default(cuid())
@@ -20,3 +21,10 @@ model User {
 
   @@map("users")
 }
+model WorkflowRun {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  status    String
+  duration  Int
+}
+
