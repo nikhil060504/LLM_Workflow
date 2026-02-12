@@ -18,38 +18,48 @@ export default function LeftSidebar() {
         resetNodeStatus();
         const batches = buildExecutionBatches(nodes, edges);
 
-        for (const batch of batches) {
-            batch.forEach((id) => setNodeStatus(id, "running"));
-            await new Promise((res) => setTimeout(res, 800));
+        try {
+            // 1. Trigger the workflow ONCE for the entire graph
+            console.log("🚀 Triggering workflow API...");
+            const res = await fetch("/api/runWorkflow", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nodes, edges }),
+            });
 
-            try {
-                const res = await fetch("/api/runWorkflow", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ nodes, edges }),
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || "Workflow execution failed");
+
+            // 2. Visually "play back" the batches for UI feedback
+            for (const batch of batches) {
+                // Set current batch to running
+                batch.forEach((id) => setNodeStatus(id, "running"));
+
+                // Artificial delay to show progress clearly
+                await new Promise((res) => setTimeout(res, 600));
+
+                // Update outputs and set to success
+                batch.forEach((id) => {
+                    const output = data.outputs?.[id];
+                    if (output) {
+                        updateNodeOutput(id, output as string);
+                    }
+                    setNodeStatus(id, "success");
                 });
 
-                const data = await res.json();
-
-                if (!data.success) throw new Error(data.error || "Workflow failed");
-
-                // Update outputs for LLM nodes
-                if (data.outputs) {
-                    Object.entries(data.outputs).forEach(([nodeId, output]) => {
-                        updateNodeOutput(nodeId, output as string);
-                    });
-                }
-
-                batch.forEach((id) => setNodeStatus(id, "success"));
-            } catch (err: any) {
-                console.error("Workflow error:", err?.message || err);
-                batch.forEach((id) => setNodeStatus(id, "error"));
-                alert(`❌ Workflow failed: ${err?.message || "Unknown error"}`);
-                return;
+                await new Promise((res) => setTimeout(res, 200));
             }
-        }
 
-        alert("✅ Workflow completed successfully!");
+            alert("✅ Workflow completed successfully!");
+        } catch (err: any) {
+            console.error("Workflow error:", err?.message || err);
+            // Mark all potentially running nodes as error
+            nodes.forEach(n => {
+                const s = useWorkflowStore.getState().nodes.find(node => node.id === n.id)?.data.status;
+                if (s === "running") setNodeStatus(n.id, "failed");
+            });
+            alert(`❌ Workflow failed: ${err?.message || "Unknown error"}`);
+        }
     };
 
 
