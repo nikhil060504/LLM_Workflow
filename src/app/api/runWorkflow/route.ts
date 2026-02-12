@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { tasks, runs } from "@trigger.dev/sdk/v3";
+import { tasks, runs } from "@trigger.dev/sdk";
 import type { runWorkflowTask } from "../../../trigger/workflow";
 
 export async function POST(req: NextRequest) {
