@@ -16,7 +16,7 @@ export default function StatusDot({ status }: { status?: string }) {
 
     return (
         <div
-            className="absolute -top-3 -left-3 w-8 h-8 flex items-center justify-center z-[10000] drop-shadow-md select-none pointer-events-none"
+            className="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center z-[10000] drop-shadow-md select-none pointer-events-none"
             title={`Status: ${status || "idle"}`}
             style={{ fontSize: '24px' }}
         >
